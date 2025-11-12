@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-core-configmap
+data:
+  application-dev.yml: |
+    server:
+      port: 8080
+
+    spring:
+      application:
+        name: backend-core
+        
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: prometheus,health,info
+      metrics:
+        tags:
+          application: ${spring.application.name}

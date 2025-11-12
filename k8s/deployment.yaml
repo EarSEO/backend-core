@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-core-deployment
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: backend-core
+  template:
+    metadata:
+      labels:
+        app: backend-core
+    spec:
+      containers:
+        - name: backend-core
+          image: earseo/backend-core:0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /etc/config
+              name: backend-configmap
+              readOnly: true
+            - mountPath: /etc/secret
+              name: backend-secret
+              readOnly: true
+      volumes:
+        - name: backend-configmap
+          configMap:
+            name: backend-configmap
+            items:
+              - key: application-dev.yaml
+                path: application-dev.yaml
+        - name: backend-secret
+          secret:
+            secretName: backend-secret
+            items:
+              - key: application-secret.yaml
+                path: application-secret.yaml
