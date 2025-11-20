@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -20,9 +21,10 @@ public class MasterDataController {
     private final MasterDataService masterDataService;
 
     @GetMapping("/admin/core/master/{start}")
-    public ResponseEntity<BaseResponse<String>> rawDataProcess(@PathVariable int start){
+    public ResponseEntity<BaseResponse<String>> rawDataProcess(@PathVariable int start) throws IOException {
         List<FilteredDataDto> filteredData = masterDataService.getRawInfo();
         List<MiddleDataDto> middleData = masterDataService.getMiddleData(filteredData,start);
+        masterDataService.createMasterTable();
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
 
@@ -31,4 +33,5 @@ public class MasterDataController {
         masterDataService.initData();
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
+
 }
