@@ -1,3 +1,17 @@
 spring:
+  application:
+    name: backend-core
   profiles:
     default: local
+server:
+  port: 8080
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha

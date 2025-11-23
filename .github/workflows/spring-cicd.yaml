@@ -1,0 +1,11 @@
+name: Spring Boot Integration & Delivery
+
+on:
+  push:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  cicd:
+    uses: earseo/infra/.github/workflows/spring-cicd.yaml@develop
+    secrets: inherit

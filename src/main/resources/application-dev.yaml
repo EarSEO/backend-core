@@ -1,5 +1,84 @@
 spring:
   config:
     import:
-      - file:/etc/config/application-config.yaml
-      - file:/etc/secret/application-secret.yaml
+      - optional:file:/etc/secret/application-secret.yaml
+  datasource:
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/earseo}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:1234}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+      ack-mode: manual
+
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:${spring.application.name}-consumer-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.earseo.core.common.KafkaEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        spring.json.add.type.headers: false
+    properties:
+      security.protocol: ${SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL:PLAINTEXT}
+      sasl.mechanism: ${SPRING_KAFKA_PROPERTIES_SASL_MECHANISM:PLAIN}
+      sasl.jaas.config: ${SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG:}
+  data:
+    redis:
+      password: ${VALKEY_PASSWORD}
+      sentinel:
+        master: ${SPRING_DATA_REDIS_SENTINEL_MASTER:valkey-master}
+        nodes: ${SPRING_DATA_REDIS_SENTINEL_NODES:localhost:26379}
+      database: 1
+
+otel:
+  propagators:
+    - tracecontext
+    - b3
+    - baggage
+management:
+  otlp:
+    tracing:
+      endpoint: http://${NODE_IP:localhost}:4317
+      transport: grpc
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+    enabled: true
+
+logging:
+  level:
+    org.hibernate.SQL: ${LOGGING_LEVEL_ORG_HIBERNATE_SQL:debug}
