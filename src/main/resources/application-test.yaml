@@ -61,3 +61,18 @@ management:
 logging:
   level:
     org.hibernate.SQL: ${LOGGING_LEVEL_ORG_HIBERNATE_SQL:debug}
+
+cloud:
+  aws:
+    credentials:
+      access-key: accesskey
+      secret-key: secretkey
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: bucket
+    cloudfront:
+      domain: domain
+
+api:
+  key: key
