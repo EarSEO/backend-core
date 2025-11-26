@@ -64,6 +64,18 @@ management:
     tags:
       application: ${spring.application.name}
 
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_CREDENTIAL_ACCESS_KEY}
+      secret-key: ${AWS_CREDENTIAL_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    cloudfront:
+      domain: ${AWS_CLOUDFRONT_DOMAIN}
+
 
   tracing:
     enabled: false

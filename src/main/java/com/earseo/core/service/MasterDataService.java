@@ -1,5 +1,7 @@
 package com.earseo.core.service;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.earseo.core.common.BaseResponse;
 import com.earseo.core.dto.etl.*;
 import com.earseo.core.entity.Category;
@@ -26,9 +28,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,9 +47,12 @@ public class MasterDataService {
     private final MiddleRepository middleRepository;
     private final MasterRepository masterRepository;
     private final GeometryFactory  geometryFactory = new GeometryFactory();
+    private final AmazonS3 amazonS3;
 
     @Value("${API_KEY}")
     private String ApiKeys;
+    @Value(("${cloud.aws.s3.bucket}"))
+    private String bucketName;
 
     private String key;
     private int index;
@@ -61,6 +69,7 @@ public class MasterDataService {
             List<FilteredDataDto> filtered = rawJsonDtos.stream()
                     .filter(dto -> !dto.contentTypeId().equals("25"))
                     .filter(dto -> !dto.contentTypeId().equals("32"))
+                    .filter(dto -> !dto.contentTypeId().equals("39"))
                     .filter(dto -> !dto.cat3().equals("A04011000"))
                     .toList();
 
@@ -94,181 +103,6 @@ public class MasterDataService {
                 .toList();
 
         categoryRepository.saveAll(categories);
-    }
-
-    @Transactional
-    public List<MiddleDataDto> getMiddleData(List<FilteredDataDto> filteredData, int start) {
-        List<MiddleDataDto> middleData = new ArrayList<>();
-        this.key = ApiKeys.split(",")[0];
-        this.index = 0;
-        System.out.println(filteredData.size());
-        for (FilteredDataDto filteredDataDto : filteredData) {
-
-            String contentId = filteredDataDto.contentId();
-            String contentTypeId = filteredDataDto.contentTypeId();
-
-            JsonNode common = fetchTourApi("https://apis.data.go.kr/B551011/KorService2/detailCommon2", contentId, null);
-            DetailItemDto detail = fetchTourDetailApi("https://apis.data.go.kr/B551011/KorService2/detailIntro2", contentId, contentTypeId);
-            JsonNode image = fetchTourApi("https://apis.data.go.kr/B551011/KorService2/detailImage2", contentId, null);
-
-            ImageItemDto imageItemDto = null;
-            CommonItemDto commonItemDto = null;
-
-            if (common == null || image == null) continue;
-
-            JsonNode commonItems = common
-                    .path("response")
-                    .path("body")
-                    .path("items")
-                    .path("item");
-
-            JsonNode imageItems = image
-                    .path("response")
-                    .path("body")
-                    .path("items")
-                    .path("item");
-
-            JsonNode commonItem = commonItems.get(0);
-            JsonNode imageItem = imageItems.get(0);
-
-            if (imageItem == null) imageItemDto = new ImageItemDto(null, null);
-            else
-                imageItemDto = new ImageItemDto(imageItem.get("originimgurl").asText(), imageItem.get("smallimageurl").asText());
-
-            if (commonItem == null)
-                commonItemDto = new CommonItemDto(null, null, null, null, null, null, null, null, null);
-            else commonItemDto = parseCommonItem(commonItem);
-
-            middleData.add(new MiddleDataDto(contentId, contentTypeId, filteredDataDto.cat1(), filteredDataDto.cat2(), filteredDataDto.cat3(),
-                    filteredDataDto.outl(), commonItemDto.title(), commonItemDto.addr1(), commonItemDto.addr2(), commonItemDto.mapX(), commonItemDto.mapY(),
-                    commonItemDto.modifiedTime(), commonItemDto.tel(), commonItemDto.mLevel(), commonItemDto.overview(),
-                    imageItemDto.imgrul(), imageItemDto.smallimgurl(), detail.usetime(), detail.restdate(), detail.parking(), detail.usefee()
-            ));
-
-        }
-        List<MiddleData> middleDataList = middleData.stream().map(MiddleData::new).toList();
-        middleRepository.saveAll(middleDataList);
-        return middleData;
-
-    }
-
-    public JsonNode fetchTourApi(String url, String contentId, String contentTypeId) {
-        RestClient client = RestClient.create();
-
-        URI uri = UriComponentsBuilder
-                .fromHttpUrl(url)
-                .queryParam("serviceKey", this.key)
-                .queryParam("MobileApp", "AppTest")
-                .queryParam("MobileOS", "ETC")
-                .queryParam("pageNo", 1)
-                .queryParam("numOfRows", 10)
-                .queryParam("_type", "json")
-                .queryParamIfPresent("contentId", Optional.ofNullable(contentId))
-                .queryParamIfPresent("contentTypeId", Optional.ofNullable(contentTypeId))
-                .build(true)
-                .toUri();
-
-        JsonNode jsonNode = null;
-
-        try {
-            jsonNode = client.get()
-                    .uri(uri)
-                    .retrieve()
-                    .body(JsonNode.class);
-
-        } catch (Exception e) {
-            if (this.index + 1 != ApiKeys.split(",").length) {
-                this.key = ApiKeys.split(",")[index + 1];
-                this.index++;
-                return fetchTourApi(url, contentId, contentTypeId);
-            }
-        }
-
-        return jsonNode;
-    }
-
-    public DetailItemDto fetchTourDetailApi(String url, String contentId, String contentTypeId) {
-        RestClient client = RestClient.create();
-
-        URI uri = UriComponentsBuilder
-                .fromHttpUrl(url)
-                .queryParam("serviceKey", this.key)
-                .queryParam("MobileApp", "AppTest")
-                .queryParam("MobileOS", "ETC")
-                .queryParam("pageNo", 1)
-                .queryParam("numOfRows", 10)
-                .queryParam("_type", "json")
-                .queryParamIfPresent("contentId", Optional.ofNullable(contentId))
-                .queryParamIfPresent("contentTypeId", Optional.ofNullable(contentTypeId))
-                .build(true)
-                .toUri();
-        JsonNode jsonNode = null;
-        try {
-            jsonNode = client.get()
-                    .uri(uri)
-                    .retrieve()
-                    .body(JsonNode.class);
-
-        } catch (Exception e) {
-            if (this.index + 1 != ApiKeys.split(",").length) {
-                this.key = ApiKeys.split(",")[index + 1];
-                this.index++;
-                return fetchTourDetailApi(url, contentId, contentTypeId);
-            }
-        }
-        DetailItemDto detailItemDto;
-
-        if (jsonNode == null) return detailItemDto = new DetailItemDto(null, null, null, null);
-
-        JsonNode detailItem = jsonNode
-                .path("response")
-                .path("body")
-                .path("items")
-                .path("item")
-                .get(0);
-
-        if (detailItem == null) return detailItemDto = new DetailItemDto(null, null, null, null);
-        switch (contentTypeId) {
-            case "12":
-                detailItemDto = new DetailItemDto(null,
-                        detailItem.get("parking").asText(), detailItem.get("restdate").asText(), detailItem.get("usetime").asText());
-                break;
-            case "14":
-                detailItemDto = new DetailItemDto(detailItem.get("usefee").asText(),
-                        detailItem.get("parkingculture").asText(), detailItem.get("restdateculture").asText(), detailItem.get("usetimeculture").asText());
-                break;
-            case "15":
-                detailItemDto = new DetailItemDto(detailItem.get("usetimefestival").asText(),
-                        null, null, null);
-                break;
-            case "28":
-                detailItemDto = new DetailItemDto(detailItem.get("usefeeleports").asText(),
-                        detailItem.get("parkingleports").asText(), detailItem.get("restdateleports").asText(), detailItem.get("usetimeleports").asText());
-                break;
-            case "38":
-                detailItemDto = new DetailItemDto(null,
-                        detailItem.get("parkingshopping").asText(), null, null);
-                break;
-
-            default:
-                detailItemDto = new DetailItemDto(null, null, null, null);
-        }
-
-        return detailItemDto;
-    }
-
-    private CommonItemDto parseCommonItem(JsonNode commonItem) {
-        return new CommonItemDto(
-                commonItem.path("title").asText(),
-                commonItem.path("addr1").asText(),
-                commonItem.path("addr2").asText(),
-                commonItem.path("mapx").asText(),
-                commonItem.path("mapy").asText(),
-                commonItem.path("modifiedtime").asText(),
-                commonItem.path("tel").asText(),
-                commonItem.path("mlevel").asText(),
-                commonItem.path("overview").asText()
-        );
     }
 
 
@@ -379,6 +213,8 @@ public class MasterDataService {
             masterItemDtos.add(dto);
         }
 
+        File jsonFile = new File("master_data.json");
+
         masterRepository.saveAll(masters);
         objectMapper
                 .getFactory()
@@ -387,7 +223,195 @@ public class MasterDataService {
                                 .maxNestingDepth(3000)
                                 .build()
                 );
+
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.writeValue(new java.io.File("master_data.json"), masterItemDtos); // S3 저장으로 리팩토링 예정
+        objectMapper.writeValue(jsonFile, masterItemDtos); // S3 저장으로 리팩토링 예정
+
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String s3Key = "master/master_data_" + date + ".json";
+
+        amazonS3.putObject(
+                new PutObjectRequest(
+                        bucketName,
+                        s3Key,
+                        jsonFile
+                )
+        );
+    }
+
+    @Transactional
+    public List<MiddleDataDto> getMiddleData(List<FilteredDataDto> filteredData) {
+
+        this.key = ApiKeys.split(",")[0];
+        this.index = 0;
+
+        List<MiddleDataDto> middleDataList = new ArrayList<>();
+
+        for (FilteredDataDto filtered : filteredData) {
+
+            String contentId = filtered.contentId();
+            String contentTypeId = filtered.contentTypeId();
+
+            JsonNode commonNode = fetchTourApi(
+                    "https://apis.data.go.kr/B551011/KorService2/detailCommon2",
+                    contentId,
+                    null
+            );
+
+            JsonNode detailNode = fetchTourApi(
+                    "https://apis.data.go.kr/B551011/KorService2/detailIntro2",
+                    contentId,
+                    contentTypeId
+            );
+
+            JsonNode imageNode = fetchTourApi(
+                    "https://apis.data.go.kr/B551011/KorService2/detailImage2",
+                    contentId,
+                    null
+            );
+
+            if (commonNode == null || detailNode == null || imageNode == null) continue;
+
+            JsonNode commonItem = getItem(commonNode);
+            JsonNode detailItem = getItem(detailNode);
+            JsonNode imageItem = getItem(imageNode);
+
+            CommonItemDto commonDto = parseCommon(commonItem);
+            DetailItemDto detailDto = parseDetail(detailItem, contentTypeId);
+            ImageItemDto imageDto = parseImage(imageItem);
+
+            MiddleDataDto dto = new MiddleDataDto(
+                    contentId,
+                    contentTypeId,
+                    filtered.cat1(),
+                    filtered.cat2(),
+                    filtered.cat3(),
+                    filtered.outl(),
+                    commonDto.title(),
+                    commonDto.addr1(),
+                    commonDto.addr2(),
+                    commonDto.mapX(),
+                    commonDto.mapY(),
+                    commonDto.modifiedTime(),
+                    commonDto.tel(),
+                    commonDto.mLevel(),
+                    commonDto.overview(),
+                    imageDto.imgrul(),
+                    imageDto.smallimgurl(),
+                    detailDto.usetime(),
+                    detailDto.restdate(),
+                    detailDto.parking(),
+                    detailDto.usefee()
+            );
+
+            middleDataList.add(dto);
+        }
+
+        middleRepository.saveAll(
+                middleDataList.stream()
+                        .map(MiddleData::new)
+                        .toList()
+        );
+
+        return middleDataList;
+    }
+
+    public JsonNode fetchTourApi(String url, String contentId, String contentTypeId) {
+
+        RestClient client = RestClient.create();
+
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(url)
+                .queryParam("serviceKey", this.key)
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("pageNo", 1)
+                .queryParam("numOfRows", 10)
+                .queryParam("_type", "json")
+                .queryParamIfPresent("contentId", Optional.ofNullable(contentId))
+                .queryParamIfPresent("contentTypeId", Optional.ofNullable(contentTypeId))
+                .build(true)
+                .toUri();
+
+        try {
+            return client.get().uri(uri).retrieve().body(JsonNode.class);
+
+        } catch (Exception e) {
+            // key 변경 후 retry
+            if (this.index + 1 < ApiKeys.split(",").length) {
+                this.index++;
+                this.key = ApiKeys.split(",")[this.index];
+                return fetchTourApi(url, contentId, contentTypeId);
+            }
+            return null;
+        }
+    }
+
+    private JsonNode getItem(JsonNode root) {
+        return root.path("response").path("body")
+                .path("items").path("item").get(0);
+    }
+
+    private CommonItemDto parseCommon(JsonNode item) {
+        if (item == null) {
+            return new CommonItemDto(null, null, null, null, null, null, null, null, null);
+        }
+
+        return new CommonItemDto(
+                item.path("title").asText(),
+                item.path("addr1").asText(),
+                item.path("addr2").asText(),
+                item.path("mapx").asText(),
+                item.path("mapy").asText(),
+                item.path("modifiedtime").asText(),
+                item.path("tel").asText(),
+                item.path("mlevel").asText(),
+                item.path("overview").asText()
+        );
+    }
+
+    private ImageItemDto parseImage(JsonNode item) {
+        if (item == null) return new ImageItemDto(null, null);
+
+        return new ImageItemDto(
+                item.path("originimgurl").asText(null),
+                item.path("smallimageurl").asText(null)
+        );
+    }
+
+    private DetailItemDto parseDetail(JsonNode item, String typeId) {
+        if (item == null) return new DetailItemDto(null, null, null, null);
+
+        return switch (typeId) {
+            case "12" -> new DetailItemDto(
+                    null,
+                    item.path("parking").asText(),
+                    item.path("restdate").asText(),
+                    item.path("usetime").asText()
+            );
+            case "14" -> new DetailItemDto(
+                    item.path("usefee").asText(),
+                    item.path("parkingculture").asText(),
+                    item.path("restdateculture").asText(),
+                    item.path("usetimeculture").asText()
+            );
+            case "15" -> new DetailItemDto(
+                    item.path("usetimefestival").asText(),
+                    null, null, null
+            );
+            case "28" -> new DetailItemDto(
+                    item.path("usefeeleports").asText(),
+                    item.path("parkingleports").asText(),
+                    item.path("restdateleports").asText(),
+                    item.path("usetimeleports").asText()
+            );
+            case "38" -> new DetailItemDto(
+                    null,
+                    item.path("parkingshopping").asText(),
+                    null,
+                    null
+            );
+            default -> new DetailItemDto(null, null, null, null);
+        };
     }
 }
