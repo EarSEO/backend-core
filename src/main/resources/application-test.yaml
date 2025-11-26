@@ -73,3 +73,6 @@ cloud:
       bucket: bucket
     cloudfront:
       domain: domain
+
+api:
+  key: key

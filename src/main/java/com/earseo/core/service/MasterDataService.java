@@ -49,7 +49,7 @@ public class MasterDataService {
     private final GeometryFactory  geometryFactory = new GeometryFactory();
     private final AmazonS3 amazonS3;
 
-    @Value("${API_KEY}")
+    @Value("${api.key}")
     private String ApiKeys;
     @Value(("${cloud.aws.s3.bucket}"))
     private String bucketName;
