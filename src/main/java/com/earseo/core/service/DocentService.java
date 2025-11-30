@@ -91,7 +91,7 @@ public class DocentService {
         List<JoinItemDto> joinItems = odiiDataRepository.joinWithMaster();
 
         int chunkSize = 10;
-        for (int i = 287; i < 500; i += chunkSize) {
+        for (int i = 0; i < joinItems.size(); i += chunkSize) {
             List<JoinItemDto> chunk = joinItems.subList(i, Math.min(i + chunkSize, joinItems.size()));
 
             try {
