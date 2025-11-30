@@ -78,3 +78,7 @@ cloud:
 
 api:
   key: key
+
+gcp:
+  credentials:
+    base64: ${GCP_CREDENTIALS_BASE64:key}

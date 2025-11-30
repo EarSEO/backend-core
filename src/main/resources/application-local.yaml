@@ -88,3 +88,7 @@ logging:
 
 api:
   key: ${API_KEY}
+
+gcp:
+  credentials:
+    base64: ${GCP_CREDENTIALS_BASE64:key}
