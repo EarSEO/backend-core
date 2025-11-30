@@ -16,7 +16,8 @@ public class DocentController {
     @PostMapping("/admin/core/docent")
     public ResponseEntity<BaseResponse<String>> initDocent() {
         docentService.initDocent();
+        docentService.getDocent();
+        docentService.getDocentJson();
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
-
 }

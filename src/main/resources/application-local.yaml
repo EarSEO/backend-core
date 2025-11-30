@@ -50,7 +50,9 @@ spring:
         master: ${SPRING_DATA_REDIS_SENTINEL_MASTER:valkey-master}
         nodes: ${SPRING_DATA_REDIS_SENTINEL_NODES:localhost:26379,localhost:26380,localhost:26381}
       database: 6
-
+  ai:
+    openai:
+      api-key: ${OPEN_AI_API_KEY}
 management:
   endpoints:
     web:

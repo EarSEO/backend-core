@@ -46,7 +46,9 @@ spring:
       database: 6
       host: localhost
       port: 6379
-
+  ai:
+    openai:
+      api-key: openaikey
 management:
   endpoints:
     web:
