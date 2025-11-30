@@ -67,7 +67,7 @@ public class Master {
     @Column(name = "modifiedtime")
     private String modifiedtime;
 
-    @Column(name = "tel")
+    @Column(name = "tel", columnDefinition = "TEXT")
     private String tel;
 
     @Column(name = "m_level")

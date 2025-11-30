@@ -52,6 +52,9 @@ spring:
         master: ${SPRING_DATA_REDIS_SENTINEL_MASTER:valkey-master}
         nodes: ${SPRING_DATA_REDIS_SENTINEL_NODES:localhost:26379}
       database: 1
+  ai:
+    openai:
+      api-key: ${OPEN_AI_API_KEY}
 
 otel:
   propagators:

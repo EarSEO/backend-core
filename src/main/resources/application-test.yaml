@@ -46,7 +46,9 @@ spring:
       database: 6
       host: localhost
       port: 6379
-
+  ai:
+    openai:
+      api-key: openaikey
 management:
   endpoints:
     web:
@@ -76,3 +78,7 @@ cloud:
 
 api:
   key: key
+
+gcp:
+  credentials:
+    base64: ${GCP_CREDENTIALS_BASE64:key}

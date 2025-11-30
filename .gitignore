@@ -38,3 +38,4 @@ out/
 
 # macOS
 .DS_Store
+/src/main/resources/gcp-service-account-key.json
