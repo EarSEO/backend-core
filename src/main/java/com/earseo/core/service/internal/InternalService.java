@@ -64,7 +64,7 @@ public class InternalService {
                 byte[] audioContent = response.getAudioContent().toByteArray();
                 String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddhhmm"));
 
-                String s3Key = "story/docent/" + request.storySpotId() + "/" + request.summaryId() + "/" + date;
+                String s3Key = "story/docent/" + request.storySpotId() + "/" + request.summaryId() + "/" + date + ".mp3";
                 ObjectMetadata metadata = new ObjectMetadata();
                 metadata.setContentLength(audioContent.length);
                 metadata.setContentType("audio/mpeg");
