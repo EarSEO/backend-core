@@ -11,6 +11,7 @@ import java.util.Set;
 public enum ExcludeRule {
 
     CONTENT_TYPE_ID("25", "32", "39"),
+    CONTENT_TYPE_ID_EN("80","82","77"),
     CAT3("A04011000");
 
     private final Set<String> rules;
@@ -21,6 +22,7 @@ public enum ExcludeRule {
 
     public static boolean shouldExclude(AreaResponse.Item item) {
         return CONTENT_TYPE_ID.rules.contains(String.valueOf(item.contenttypeid()))
+                || CONTENT_TYPE_ID_EN.rules.contains(String.valueOf(item.contenttypeid()))
                 || CAT3.rules.contains(String.valueOf(item.cat3()));
     }
 

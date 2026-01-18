@@ -1,8 +1,5 @@
 package com.earseo.core.entity;
 
-import com.earseo.core.dto.etl.MasterItemDto;
-import com.earseo.core.service.master.CategoryGroup;
-import com.earseo.core.service.master.SubCategoryGroup;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Builder
-public class EnMaster {    @Id
-
-@GeneratedValue(strategy = GenerationType.IDENTITY)
+public class EnMaster {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "content_id")
@@ -83,10 +80,5 @@ public class EnMaster {    @Id
 
     @Column(name = "use_fee", columnDefinition = "TEXT")
     private String usefee;
-
-    public EnMaster from(MasterItemDto masterItemDto){
-        return EnMaster.builder()
-                .build();
-    }
 
 }
