@@ -10,12 +10,22 @@ import java.util.List;
 public interface OdiiDataRepository extends JpaRepository<OdiiData, Long> {
 
     @Query(value = """
-            SELECT DISTINCT m.id, m.content_id, m.title, MIN(o.script), m.outl
+            SELECT DISTINCT km.id, km.content_id, km.title, MIN(o.script), km.overview
             FROM odii_data o
-                     RIGHT JOIN master m ON m.title = o.title
-            WHERE m.title IS NOT NULL
-            GROUP BY m.id, m.content_id, m.title, m.outl
-            ORDER BY m.id
+                     RIGHT JOIN ko_master km ON km.title = o.title
+            WHERE km.title IS NOT NULL
+            GROUP BY km.id, km.content_id, km.title, km.overview
+            ORDER BY km.id
             """, nativeQuery = true)
-    List<JoinItemDto> joinWithMaster();
+    List<JoinItemDto> joinWithMasterKo();
+
+    @Query(value = """
+            SELECT DISTINCT em.id, em.content_id, em.title, MIN(o.script), em.overview
+            FROM odii_data o
+                     RIGHT JOIN en_master em ON em.title = o.title
+            WHERE em.title IS NOT NULL
+            GROUP BY em.id, em.content_id, em.title, em.overview
+            ORDER BY em.id
+            """, nativeQuery = true)
+    List<JoinItemDto> joinWithMasterEn();
 }

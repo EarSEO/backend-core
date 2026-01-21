@@ -5,6 +5,7 @@ import com.earseo.core.service.DocentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -14,10 +15,12 @@ public class DocentController {
     private final DocentService docentService;
 
     @PostMapping("/admin/core/docent")
-    public ResponseEntity<BaseResponse<String>> initDocent() {
-        docentService.initDocent();
-        docentService.getDocent();
-        docentService.getDocentJson();
+    public ResponseEntity<BaseResponse<String>> initDocent(
+            @RequestBody String lang
+    ) {
+        docentService.initDocent(lang);
+        docentService.getDocent(lang);
+        docentService.getDocentJson(lang);
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
 }
