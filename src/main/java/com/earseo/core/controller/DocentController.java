@@ -20,7 +20,7 @@ public class DocentController {
     ) {
         docentService.initDocent(lang);
         docentService.getDocent(lang);
-        docentService.getDocentJson(lang);
+        docentService.getDocentJson();
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
 }

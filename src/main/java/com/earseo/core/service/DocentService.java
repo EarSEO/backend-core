@@ -139,7 +139,7 @@ public class DocentService {
         docentRepository.saveAll(docents);
     }
 
-    public String getDocentJson(String lang){
+    public String getDocentJson(){
         try{
             List<Docent> docents = docentRepository.findAll();
 
@@ -156,7 +156,7 @@ public class DocentService {
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
             objectMapper.writeValue(tempFile, exportData);
 
-            String s3Key = String.format("core/docent/docent_data.json_%s_", lang);
+            String s3Key = "core/docent/docent_data.json";
 
             objectMapper
                     .getFactory()
