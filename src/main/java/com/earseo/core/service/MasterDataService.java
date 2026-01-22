@@ -193,9 +193,9 @@ public class MasterDataService {
                 cat2Code = subCat.getCode();
             } else {
                 cat1 = cat.getEnName();
-                cat2 = cat.getEnName();
+                cat2 = subCat.getEnName();
                 cat1Code = cat.getCode();
-                cat2Code = cat.getCode();
+                cat2Code = subCat.getCode();
             }
 
             MasterItemDto masterItemDto = MasterItemDto.builder()
