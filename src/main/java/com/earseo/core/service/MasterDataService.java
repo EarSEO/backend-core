@@ -3,6 +3,8 @@ package com.earseo.core.service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.earseo.core.dto.etl.*;
+import com.earseo.core.dto.response.ThemeListResponse;
+import com.earseo.core.dto.response.ThemeResponse;
 import com.earseo.core.dto.tourApi.AreaResponse;
 import com.earseo.core.dto.tourApi.CommonResponse;
 import com.earseo.core.dto.tourApi.DetailResponse;
@@ -353,5 +355,14 @@ public class MasterDataService {
         }
 
         return null;
+    }
+
+    public ThemeListResponse getAllThemes() {
+        List<ThemeResponse> themeResponses = new ArrayList<>();
+
+        themeResponses.addAll(Arrays.stream(SubCategoryGroup.values()).map(ThemeResponse::fromSub).toList());
+        themeResponses.addAll(Arrays.stream(CategoryGroup.values()).map(ThemeResponse::from).toList());
+
+        return new ThemeListResponse(themeResponses);
     }
 }

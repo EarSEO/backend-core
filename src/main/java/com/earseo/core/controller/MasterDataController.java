@@ -2,6 +2,7 @@ package com.earseo.core.controller;
 
 import com.earseo.core.common.BaseResponse;
 import com.earseo.core.dto.etl.AreaItemDto;
+import com.earseo.core.dto.response.ThemeListResponse;
 import com.earseo.core.service.MasterDataService;
 import com.earseo.core.service.master.TourApiPath;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,10 @@ public class MasterDataController {
     public ResponseEntity<BaseResponse<String>> init(){
         masterDataService.createCategory();
         return ResponseEntity.ok(BaseResponse.ok(null));
+    }
+
+    @GetMapping("/core/theme")
+    public ResponseEntity<BaseResponse<ThemeListResponse>> createTableCategory(){
+        return  ResponseEntity.ok(BaseResponse.ok(masterDataService.getAllThemes()));
     }
 }
