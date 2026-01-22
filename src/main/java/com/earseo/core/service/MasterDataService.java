@@ -347,6 +347,11 @@ public class MasterDataService {
             return "서울시 " + matcher.group(1);
         }
 
+        String[] originAddr = addr.split(",");
+        if(originAddr.length > 1){
+            return originAddr[originAddr.length-2]+", "+originAddr[originAddr.length-1].trim();
+        }
+
         return null;
     }
 }
