@@ -19,27 +19,27 @@ public class MasterDataController {
 
     private final MasterDataService masterDataService;
 
-    @GetMapping("/admin/core/master/ko")
+    @GetMapping("/api/admin/core/master/ko")
     public ResponseEntity<BaseResponse<String>> createTableKo() throws IOException {
         List<AreaItemDto> list = masterDataService.getTourApiArea(TourApiPath.KoArea.getPath());
         masterDataService.createMasterTable(list, TourApiPath.KoCommon.getPath(), TourApiPath.KoDetail.getPath(), "ko");
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
 
-    @GetMapping("/admin/core/master/en")
+    @GetMapping("/api/admin/core/master/en")
     public ResponseEntity<BaseResponse<String>> createTableEn() throws IOException {
         List<AreaItemDto> list = masterDataService.getTourApiArea(TourApiPath.EnArea.getPath());
         masterDataService.createMasterTable(list, TourApiPath.EnCommon.getPath(), TourApiPath.EnDetail.getPath(), "en");
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
 
-    @GetMapping("/admin/core/init")
+    @GetMapping("/api/admin/core/init")
     public ResponseEntity<BaseResponse<String>> init(){
         masterDataService.createCategory();
         return ResponseEntity.ok(BaseResponse.ok(null));
     }
 
-    @GetMapping("/core/theme")
+    @GetMapping("/api/core/theme")
     public ResponseEntity<BaseResponse<ThemeListResponse>> createTableCategory(){
         return  ResponseEntity.ok(BaseResponse.ok(masterDataService.getAllThemes()));
     }

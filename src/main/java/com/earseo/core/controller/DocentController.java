@@ -14,7 +14,7 @@ public class DocentController {
 
     private final DocentService docentService;
 
-    @PostMapping("/admin/core/docent")
+    @PostMapping("/api/admin/core/docent")
     public ResponseEntity<BaseResponse<String>> initDocent(
             @RequestBody String lang
     ) {
