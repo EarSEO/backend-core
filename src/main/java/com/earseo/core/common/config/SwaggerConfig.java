@@ -3,6 +3,7 @@ package com.earseo.core.common.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI defaultOpenAPI(@Value("${spring.application.name}") String appName) {
         return new OpenAPI()
+                .addServersItem(new Server().url("/"))
                 .components(new Components())
                 .info(new Info()
                         .title(appName + " API")
