@@ -4,7 +4,7 @@ public record JoinItemDto(
         Long id,
         String contentId,
         String title,
-        String outl,
+        String overview,
         String script
 ) {
 }

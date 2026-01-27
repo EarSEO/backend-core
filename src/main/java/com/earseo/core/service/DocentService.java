@@ -60,13 +60,13 @@ public class DocentService {
     private int index;
 
     @Transactional
-    public void initDocent() {
+    public void initDocent(String lang) {
 
         int pageNo = 1;
         int numOfRows = 100;
 
         while (true) {
-            JsonNode jsonNode = fetchOdiiApi(pageNo, numOfRows);
+            JsonNode jsonNode = fetchOdiiApi(pageNo, numOfRows, lang);
             JsonNode body = jsonNode.path("response").path("body");
 
             if (body.path("numOfRows").asInt() == 0) {
@@ -76,7 +76,6 @@ public class DocentService {
             List<OdiiData> odiiDataList = new ArrayList<>();
 
             if (body.path("items").path("item").isArray()) {
-                System.out.println("hello");
                 for (JsonNode item : body.path("items").path("item")) {
                     odiiDataList.add(OdiiData.builder().title(item.path("title").asText()).script(item.path("script").asText()).build());
                 }
@@ -87,15 +86,20 @@ public class DocentService {
         }
     }
 
-    public void getDocent() {
-        List<JoinItemDto> joinItems = odiiDataRepository.joinWithMaster();
+    public void getDocent(String lang) {
+        List<JoinItemDto> joinItems;
+        if (lang.equals("en")) {
+            joinItems = odiiDataRepository.joinWithMasterEn();
+        } else {
+            joinItems = odiiDataRepository.joinWithMasterKo();
+        }
 
         int chunkSize = 10;
         for (int i = 0; i < joinItems.size(); i += chunkSize) {
             List<JoinItemDto> chunk = joinItems.subList(i, Math.min(i + chunkSize, joinItems.size()));
 
             try {
-                processChunk(chunk);
+                processChunk(chunk, lang);
             } catch (Exception e) {
                 return;
             }
@@ -103,12 +107,12 @@ public class DocentService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processChunk(List<JoinItemDto> chunk) {
+    public void processChunk(List<JoinItemDto> chunk, String lang) {
         List<Docent> docents = new ArrayList<>();
 
         for (JoinItemDto data : chunk) {
             log.info("current item id : " + data.id());
-            String source = data.outl();
+            String source = data.overview();
 
             if (data.script() != null) {
                 source = data.script();
@@ -117,7 +121,7 @@ public class DocentService {
             String prompt = String.format(DOCENT_SCRIPT.message, data.title(), source);
             try {
                 String script = chatClient.prompt(prompt).call().content();
-                String docentUrl = getDocentUrl(data.contentId(), script, "ko");
+                String docentUrl = getDocentUrl(data.contentId(), script, lang);
 
                 Docent docent = Docent.builder()
                         .contentId(data.contentId())
@@ -233,12 +237,12 @@ public class DocentService {
         }
     }
 
-    public JsonNode fetchOdiiApi(int pageNo, int numOfRows) {
+    public JsonNode fetchOdiiApi(int pageNo, int numOfRows, String lang) {
         this.key = ApiKeys.split(",")[0];
         this.index = 0;
         RestClient client = RestClient.create();
 
-        URI uri = UriComponentsBuilder.fromHttpUrl("https://apis.data.go.kr/B551011/Odii/storyBasedList").queryParam("serviceKey", this.key).queryParam("MobileApp", "AppTest").queryParam("MobileOS", "ETC").queryParam("pageNo", pageNo).queryParam("numOfRows", numOfRows).queryParam("_type", "json").queryParam("langCode", "ko").build(true).toUri();
+        URI uri = UriComponentsBuilder.fromHttpUrl("https://apis.data.go.kr/B551011/Odii/storyBasedList").queryParam("serviceKey", this.key).queryParam("MobileApp", "AppTest").queryParam("MobileOS", "ETC").queryParam("pageNo", pageNo).queryParam("numOfRows", numOfRows).queryParam("_type", "json").queryParam("langCode", lang).build(true).toUri();
         try {
             return client.get().uri(uri).retrieve().body(JsonNode.class);
         } catch (Exception e) {
@@ -246,7 +250,7 @@ public class DocentService {
             if (this.index + 1 < ApiKeys.split(",").length) {
                 this.index++;
                 this.key = ApiKeys.split(",")[this.index];
-                return fetchOdiiApi(pageNo, numOfRows);
+                return fetchOdiiApi(pageNo, numOfRows, lang);
             }
             return null;
         }
