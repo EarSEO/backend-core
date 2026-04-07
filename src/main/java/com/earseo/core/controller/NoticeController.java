@@ -4,7 +4,7 @@ import com.earseo.core.common.BaseResponse;
 import com.earseo.core.dto.request.NoticeCreateRequest;
 import com.earseo.core.dto.request.NoticeUpdateRequest;
 import com.earseo.core.dto.response.NoticeDeleteResponse;
-import com.earseo.core.dto.response.NoticeListResponse;
+import com.earseo.core.dto.response.NoticePageResponse;
 import com.earseo.core.dto.response.NoticeResponse;
 import com.earseo.core.service.NoticeService;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class NoticeController {
     }
 
     @GetMapping("/api/core/notice")
-    public ResponseEntity<BaseResponse<NoticeListResponse>> getNoticeList(
+    public ResponseEntity<BaseResponse<NoticePageResponse>> getNoticeList(
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {

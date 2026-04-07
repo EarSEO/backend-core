@@ -1,6 +1,6 @@
 package com.earseo.core.dto.etl;
 
-public record NoticeListItem(
+public record NoticePageItem(
         Long noticeId,
         String title
 ) {
