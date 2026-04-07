@@ -7,6 +7,7 @@ import com.earseo.core.dto.response.NoticeDeleteResponse;
 import com.earseo.core.dto.response.NoticePageResponse;
 import com.earseo.core.dto.response.NoticeResponse;
 import com.earseo.core.service.NoticeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,7 +38,7 @@ public class NoticeController {
 
     @PostMapping("/api/admin/core/notice")
     public ResponseEntity<BaseResponse<NoticeResponse>> createNotice(
-            @RequestBody NoticeCreateRequest request
+            @RequestBody @Valid NoticeCreateRequest request
     ){
         return ResponseEntity.ok(BaseResponse.ok(noticeService.createNotice(request)));
     }
@@ -45,7 +46,7 @@ public class NoticeController {
     @PutMapping("/api/admin/core/notice/{noticeId}")
     public ResponseEntity<BaseResponse<NoticeResponse>> updateNotice(
             @PathVariable Long noticeId,
-            @RequestBody NoticeUpdateRequest request
+            @RequestBody @Valid NoticeUpdateRequest request
     ){
         return ResponseEntity.ok(BaseResponse.ok(noticeService.updateNotice(noticeId, request)));
     }
