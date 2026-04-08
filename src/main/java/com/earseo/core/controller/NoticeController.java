@@ -3,15 +3,14 @@ package com.earseo.core.controller;
 import com.earseo.core.common.BaseResponse;
 import com.earseo.core.dto.request.NoticeCreateRequest;
 import com.earseo.core.dto.request.NoticeUpdateRequest;
+import com.earseo.core.dto.request.PageableRequest;
 import com.earseo.core.dto.response.NoticeDeleteResponse;
 import com.earseo.core.dto.response.NoticePageResponse;
 import com.earseo.core.dto.response.NoticeResponse;
 import com.earseo.core.service.NoticeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,10 +29,10 @@ public class NoticeController {
 
     @GetMapping("/api/core/notice")
     public ResponseEntity<BaseResponse<NoticePageResponse>> getNoticeList(
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
-            Pageable pageable
+            @ParameterObject
+            PageableRequest pageableRequest
     ) {
-        return ResponseEntity.ok(BaseResponse.ok(noticeService.getNoticeList(pageable)));
+        return ResponseEntity.ok(BaseResponse.ok(noticeService.getNoticeList(pageableRequest.toPageable())));
     }
 
     @PostMapping("/api/admin/core/notice")
