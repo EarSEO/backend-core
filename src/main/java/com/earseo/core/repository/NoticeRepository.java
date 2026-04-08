@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
-    @Query("SELECT new com.earseo.core.dto.etl.NoticePageItem(n.id, n.title) FROM Notice n")
+    @Query("SELECT new com.earseo.core.dto.etl.NoticePageItem(n.id, n.title, n.createdAt, n.updatedAt) FROM Notice n")
     Slice<NoticePageItem> findNoticeList(Pageable pageable);
 }
